@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background: #f9f9f9; 
+            color: #222;
+        }
+        .menu-bar {
+            background: #333;
+            padding: 12px 0;
+            text-align: center;
+            border-radius: 6px;
+            margin-bottom: 32px;
+        }
+        .menu-bar a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 18px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .menu-bar a:hover {
+            color: #ffd700;
+        }
+        .container {
+            max-width: 800px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 16px;
+        }
+        p {
+            color: #555;
+        }
+        .card-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            justify-content: center;
+        }
+        .image-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 16px;
+            width: 220px;
+            text-align: center;
+            transition: box-shadow 0.2s;
+            margin-bottom: 24px;
+            cursor: pointer;
+        }
+        .image-card img {
+            max-width: 100%;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        .image-card h3 {
+            margin: 8px 0 4px 0;
+            font-size: 1.1em;
+        }
+        .image-card p {
+            color: #555;
+            margin: 0;
+            font-weight: bold;
+        }
+        .image-card button {
+            margin-top:10px;
+            padding:6px 16px;
+            border-radius:4px;
+            border:none;
+            background:#ffd700;
+            color:#222;
+            font-weight:bold;
+            cursor:pointer;
+        }
+        .image-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        }
+        /* Cart modal styles */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.3);
+            justify-content: center;
+            align-items: center;
+        }
+        .cart-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            min-width: 320px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 12px;
+        }
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .cart-item h4 {
+            margin: 0 0 4px 0;
+            font-size: 1em;
+        }
+        .cart-item p {
+            margin: 0;
+            color: #555;
+        }
+        .close-cart {
+            float: right;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: #888;
+        }
+    </style>
+    <script>
+        const imageFilenames = {{ image_filenames|tojson }};
+        const titles = {{ titles|tojson }};
+        const prices = {{ prices|tojson }};
+
+        function addToCart(index) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const item = {
+                filename: imageFilenames[index],
+                title: titles[index],
+                price: prices[index],
+                qty: 1
+            };
+            // Check if item already in cart
+            const existing = cart.find(i => i.filename === item.filename);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push(item);
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert(item.title + " added to cart!");
+        }
+
+        function showCart() {
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const cartList = document.getElementById('cart-list');
+            cartList.innerHTML = '';
+            let total = 0;
+            if (cart.length === 0) {
+                cartList.innerHTML = '<p>Your cart is empty.</p>';
+            } else {
+                cart.forEach((item, idx) => {
+                    const priceNum = parseFloat(item.price);
+                    total += priceNum * item.qty;
+                    const div = document.createElement('div');
+                    div.className = 'cart-item';
+                    div.innerHTML = `
+                        <img src="/static/images/${item.filename}" alt="${item.title}">
+                        <div>
+                            <h4>${item.title}</h4>
+                            <p>Price: $${item.price}</p>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <button onclick="updateQty(${idx}, -1)" style="width:28px;height:28px;">-</button>
+                                <span id="qty-${idx}">${item.qty}</span>
+                                <button onclick="updateQty(${idx}, 1)" style="width:28px;height:28px;">+</button>
+                            </div>
+                        </div>
+                    `;
+                    cartList.appendChild(div);
+                });
+                // Display total
+                const totalDiv = document.createElement('div');
+                totalDiv.style = "margin-top:18px;font-weight:bold;font-size:1.1em;text-align:right;";
+                totalDiv.innerHTML = `Total: $${total.toFixed(2)}`;
+                cartList.appendChild(totalDiv);
+
+                // Checkout button
+                const checkoutBtn = document.createElement('button');
+                checkoutBtn.textContent = "Checkout";
+                checkoutBtn.style = "margin-top:18px;padding:8px 24px;border-radius:4px;border:none;background:#333;color:#fff;font-weight:bold;cursor:pointer;";
+                checkoutBtn.onclick = showCheckoutForm;
+                cartList.appendChild(checkoutBtn);
+            }
+            document.getElementById('cart-modal').style.display = 'flex';
+        }
+
+        function updateQty(index, delta) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1); // Remove item if qty is 0 or less
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            showCart();
+        }
+
+        function closeCart() {
+            document.getElementById('cart-modal').style.display = 'none';
+        }
+
+        // Checkout modal logic
+        function showCheckoutForm() {
+            document.getElementById('checkout-form').style.display = 'block';
+        }
+        function closeCheckoutForm() {
+            document.getElementById('checkout-form').style.display = 'none';
+        }
+        function submitCheckout(event) {
+            event.preventDefault();
+            alert('Payment submitted! (Demo only)');
+            closeCheckoutForm();
+            closeCart();
+            localStorage.removeItem('cart');
+        }
+    </script>
+</head>
+<body>
+    <div class="menu-bar">
+        <a href="/views/">Home</a>
+        <a href="/views/about">About</a>
+        <a href="/views/contact">Contact</a>
+        <button onclick="showCart()" style="margin-left:24px;padding:6px 16px;border-radius:4px;border:none;background:#ffd700;color:#222;font-weight:bold;cursor:pointer;">View Cart</button>
+    </div>
+    <div class="container">
+        <h1>Welcome!</h1>
+        
+        <div class="card-grid">
+            {% for filename in image_filenames %}
+            <div class="image-card">
+                <img src="{{ url_for('static', filename='images/' ~ filename) }}" alt="{{ filename }}">
+                <h3>{{ titles[loop.index0] }}</h3>
+                <p>Price: ${{ prices[loop.index0] }}</p>
+                <button onclick="addToCart({{ loop.index0 }})">
+                    Add to Cart
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="cart-modal" onclick="if(event.target===this)closeCart()">
+        <div class="cart-content">
+            <span class="close-cart" onclick="closeCart()">&times;</span>
+            <h2>Your Cart</h2>
+            <div id="cart-list"></div>
+        </div>
+    </div>
+    <!-- Checkout Form Modal -->
+    <div id="checkout-form" class="cart-modal" style="display:none;" onclick="if(event.target===this)closeCheckoutForm()">
+        <div class="cart-content" style="max-width:400px;">
+            <span class="close-cart" onclick="closeCheckoutForm()">&times;</span>
+            <h2>Checkout</h2>
+            <form onsubmit="submitCheckout(event)">
+                <div style="margin-bottom:12px;text-align:left;">
+                    <label>Name on Card</label><br>
+                    <input type="text" required style="width:100%;padding:6px;">
+                </div>
+                <div style="margin-bottom:12px;text-align:left;">
+                    <label>Card Number</label><br>
+                    <input type="text" pattern="\d{16}" maxlength="16" required style="width:100%;padding:6px;">
+                </div>
+                <div style="margin-bottom:12px;display:flex;gap:8px;">
+                    <div style="flex:1;">
+                        <label>Expiry</label><br>
+                        <input type="text" pattern="\d{2}/\d{2}" maxlength="5" placeholder="MM/YY" required style="width:100%;padding:6px;">
+                    </div>
+                    <div style="flex:1;">
+                        <label>CVC</label><br>
+                        <input type="text" pattern="\d{3}" maxlength="3" required style="width:100%;padding:6px;">
+                    </div>
+                </div>
+                <button type="submit" style="width:100%;padding:10px 0;border:none;border-radius:4px;background:#ffd700;color:#222;font-weight:bold;font-size:1.1em;">Pay Now</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

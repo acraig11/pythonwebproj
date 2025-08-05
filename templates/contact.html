@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background: #f9f9f9; 
+            color: #222;
+        }
+        .menu-bar {
+            background: #333;
+            padding: 12px 0;
+            text-align: center;
+            border-radius: 6px;
+            margin-bottom: 32px;
+        }
+        .menu-bar a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 18px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .menu-bar a:hover {
+            color: #ffd700;
+        }
+        .container {
+            max-width: 600px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 16px;
+        }
+        p {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-bar">
+        <a href="/views/">Home</a>
+        <a href="/views/about">About</a>
+        <a href="/views/contact">Contact</a>
+    </div>
+    <div class="container">
+        <h1>Welcome to the Contact Page, {{name}}!</h1>
+        <p>This is a generic HTML screen. Customize this page as needed for your project.</p>
+    </div>
+</body>
+</html>
